@@ -22,10 +22,15 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import cl.ecomarket.pedidos.DTO.PedidoResponseDTO;
+import cl.ecomarket.pedidos.DTO.PedidoResponseDTO.DetalleResponseDTO;
 import cl.ecomarket.pedidos.DTO.ProductoDTO;
 import cl.ecomarket.pedidos.model.DetallePedido;
 import cl.ecomarket.pedidos.model.Pedido;
 import cl.ecomarket.pedidos.service.PedidoService;
+import org.springframework.hateoas.EntityModel;
+import org.springframework.hateoas.Link;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
 @RestController
 @RequestMapping("/api/v1/pedidos")
@@ -90,6 +95,24 @@ public class PedidoController {
  public List<PedidoResponseDTO> obtenerTodos() {
     return pedidoService.obtenerTodosConNombres();
 }
+
+@GetMapping("/{id}/detalladahetoas")
+public ResponseEntity<?> getResenaDetalladahtoas(@PathVariable Long id) {
+    ProductoDTO dto = pedidoService.obtenerProductoPorId(id);
+    if (dto == null)
+        return ResponseEntity.notFound().build();
+
+    EntityModel<ProductoDTO> model = EntityModel.of(dto);
+    model.add(linkTo(methodOn(PedidoController.class).getResenaDetalladahtoas(id)).withSelfRel());
+    model.add(linkTo(methodOn(PedidoController.class).obtenerTodos()).withRel("todas-las-resenas"));
+
+    // Link al producto
+    model.add(Link.of("http://localhost:8081/api/v1/productos/" + dto.getProductoId())
+            .withRel("producto"));
+
+    return ResponseEntity.ok(model);
+}
+
 
     @GetMapping("/{id}")
     public ResponseEntity<?> obtenerPorId(@PathVariable Long id) {
