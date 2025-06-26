@@ -20,23 +20,28 @@ public class ApiKeyFilter extends OncePerRequestFilter {
         this.apiKey = apiKey;
     }
 
-    @Override
-    protected void doFilterInternal(HttpServletRequest request,
-                                    HttpServletResponse response,
-                                    FilterChain filterChain) throws ServletException, IOException {
+  @Override
+protected void doFilterInternal(HttpServletRequest request,
+                                HttpServletResponse response,
+                                FilterChain filterChain) throws ServletException, IOException {
 
-        String requestApiKey = request.getHeader(API_KEY_HEADER_NAME);
+    String requestApiKey = request.getHeader(API_KEY_HEADER_NAME);
 
-        if (apiKey.equals(requestApiKey)) {
-            UsernamePasswordAuthenticationToken authentication =
-                    new UsernamePasswordAuthenticationToken("apiKeyUser", null, Collections.emptyList());
-            SecurityContextHolder.getContext().setAuthentication(authentication);
-        } else {
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            response.getWriter().write("Su Api Key no es valida amigo, por favor verifique su Api Key");
-            return;
-        }
-
-        filterChain.doFilter(request, response);
+    if (apiKey.equals(requestApiKey)) {
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken("apiKeyUser", null, Collections.emptyList());
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        filterChain.doFilter(request, response); // Sigue normal
+    } else {
+        response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+        response.getWriter().write("Su API Key no es válida, verifique la clave.");
     }
+}
+
+@Override
+protected boolean shouldNotFilter(HttpServletRequest request) {
+    String path = request.getServletPath();
+    return path.startsWith("/swagger-ui") || path.startsWith("/v3/api-docs");
+}
+
 }

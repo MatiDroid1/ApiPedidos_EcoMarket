@@ -32,15 +32,20 @@ import org.springframework.hateoas.Link;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
 
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 @RestController
 @RequestMapping("/api/v1/pedidos")
 @CrossOrigin
+@Tag(name = "Pedidos", description = "API para gestionar pedidos de clientes")
 public class PedidoController {
 
     @Autowired
     private PedidoService pedidoService;
 
     @PostMapping
+    @Operation(summary = "Crear un nuevo pedido", description = "Crea un pedido con sus detalles y calcula totales")
     public ResponseEntity<?> crearPedido(@RequestBody PedidoResponseDTO pedidoDTO) {
         try {
             Pedido pedido = new Pedido();
@@ -92,11 +97,13 @@ public class PedidoController {
     }
 
     @GetMapping
+    @Operation(summary = "Listar todos los pedidos", description = "Devuelve todos los pedidos realizados")
  public List<PedidoResponseDTO> obtenerTodos() {
     return pedidoService.obtenerTodosConNombres();
 }
 
 @GetMapping("/{id}/detalladahetoas")
+@Operation(summary = "Listar todos los pedidos", description = "Devuelve todos los pedidos realizados con url de los otros microservicios")
 public ResponseEntity<?> getResenaDetalladahtoas(@PathVariable Long id) {
     ProductoDTO dto = pedidoService.obtenerProductoPorId(id);
     if (dto == null)
@@ -105,8 +112,6 @@ public ResponseEntity<?> getResenaDetalladahtoas(@PathVariable Long id) {
     EntityModel<ProductoDTO> model = EntityModel.of(dto);
     model.add(linkTo(methodOn(PedidoController.class).getResenaDetalladahtoas(id)).withSelfRel());
     model.add(linkTo(methodOn(PedidoController.class).obtenerTodos()).withRel("todas-las-resenas"));
-
-    // Link al producto
     model.add(Link.of("http://localhost:8081/api/v1/productos/" + dto.getProductoId())
             .withRel("producto"));
 
@@ -115,6 +120,7 @@ public ResponseEntity<?> getResenaDetalladahtoas(@PathVariable Long id) {
 
 
     @GetMapping("/{id}")
+    @Operation(summary = "Listar todos los pedidos", description = "Devuelve todos pedido realizados buscando por su id")
     public ResponseEntity<?> obtenerPorId(@PathVariable Long id) {
         Optional<Pedido> pedidoOpt = pedidoService.obtenerPorId(id);
         if (pedidoOpt.isPresent()) {
@@ -126,6 +132,7 @@ public ResponseEntity<?> getResenaDetalladahtoas(@PathVariable Long id) {
     }
 
     @PutMapping("/{id}")
+    @Operation(summary = "Listar todos los pedidos", description = "actualizar pedido")
     public ResponseEntity<Pedido> actualizarPedido(@PathVariable Long id, @RequestBody Pedido pedido) {
         try {
             Pedido pedidoActualizado = pedidoService.actualizarPedido(id, pedido);
@@ -141,6 +148,7 @@ public ResponseEntity<?> getResenaDetalladahtoas(@PathVariable Long id) {
     }
 
     @DeleteMapping("/{id}")
+    @Operation(summary = "Listar todos los pedidos", description = "Eliminar pedido por id")
     public void eliminarPedido(@PathVariable Long id) {
         pedidoService.eliminarPedido(id);
     }

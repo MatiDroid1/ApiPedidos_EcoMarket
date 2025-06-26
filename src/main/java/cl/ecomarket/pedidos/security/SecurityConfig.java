@@ -17,10 +17,13 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
-            
             .authorizeHttpRequests(authz -> authz
-                .anyRequest().authenticated()
-                
+                .requestMatchers(
+                    "/v3/api-docs/**",
+                    "/swagger-ui/**",
+                    "/swagger-ui.html"
+                ).permitAll() // Swagger sin auth
+                .anyRequest().authenticated() // Lo demás sí requiere API Key
             )
             .addFilterBefore(new ApiKeyFilter(apiKey), UsernamePasswordAuthenticationFilter.class);
 
