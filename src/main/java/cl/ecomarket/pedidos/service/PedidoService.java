@@ -4,11 +4,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
+import org.hibernate.Hibernate;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.RestTemplate;
 
 import cl.ecomarket.pedidos.DTO.PedidoResponseDTO;
@@ -17,6 +19,7 @@ import cl.ecomarket.pedidos.DTO.ProductoDTO;
 import cl.ecomarket.pedidos.model.DetallePedido;
 import cl.ecomarket.pedidos.model.Pedido;
 import cl.ecomarket.pedidos.repository.PedidoRepository;
+import jakarta.persistence.EntityNotFoundException;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpEntity;
@@ -37,9 +40,13 @@ public class PedidoService {
         return pedidoRepository.findAll();
     }
 
-    public Optional<Pedido> obtenerPorId(Long id) {
-        return pedidoRepository.findById(id);
-    }
+@Transactional(readOnly = true)
+public Optional<Pedido> obtenerPorId(Long id) {
+    Optional<Pedido> pedido = pedidoRepository.findById(id);
+    pedido.ifPresent(p -> Hibernate.initialize(p.getDetalles()));
+    return pedido;
+}
+
 
     public Pedido actualizarPedido(Long id, Pedido pedidoActualizado) {
         return pedidoRepository.findById(id).map(pedido -> {
@@ -137,6 +144,5 @@ public List<PedidoResponseDTO> obtenerTodosConNombres() {
 
     return pedidosResponse;
 }
-
 
 }
